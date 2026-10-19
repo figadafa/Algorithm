@@ -1,25 +1,61 @@
 import { MaterialIcons } from "@expo/vector-icons";
+import React, { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { COLORS } from "./theme";
+import { useTheme } from "@/context/ThemeContext";
+import { globalStyles } from "@/styles";
 
 interface HeaderProps {
   onNotificationPress: () => void;
 }
 
 export default function Header({ onNotificationPress }: HeaderProps) {
+  const { colors } = useTheme();
+  const [greeting, setGreeting] = useState<string>("");
+
+  useEffect(() => {
+    // Fungsi untuk menentukan sapaan berdasarkan waktu
+    const updateGreeting = () => {
+      const hours = new Date().getHours();
+      if (hours < 12) {
+        setGreeting("Good Morning");
+      } else if (hours < 17) {
+        setGreeting("Good Afternoon");
+      } else {
+        setGreeting("Good Evening");
+      }
+    };
+
+    // Jalankan sekali saat mount
+    updateGreeting();
+
+    // Perbarui setiap menit untuk memastikan sapaan tetap akurat
+    const intervalId = setInterval(updateGreeting, 60000);
+
+    // Cleanup interval saat komponen unmount
+    return () => clearInterval(intervalId);
+  }, []); // Dependency array kosong agar interval hanya dibuat sekali
+
   return (
     <View style={styles.headerContainer}>
       <View>
-        <Text style={styles.greetingText}>Good Morning</Text>
-        <Text style={styles.subtitleText}>Ready to start learning?</Text>
+        <Text style={[styles.greetingText, { color: colors.primary }]}>
+          {greeting}
+        </Text>
+        <Text style={[globalStyles.subtitleText, { color: colors.text }]}>
+          Ready to start learning?
+        </Text>
       </View>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Notifications"
         onPress={onNotificationPress}
-        style={styles.notificationButton}
+        style={[
+          styles.notificationButton,
+          globalStyles.shadow,
+          { backgroundColor: colors.cardBackground },
+        ]}
       >
-        <MaterialIcons name="notifications" size={20} color={COLORS.primary} />
+        <MaterialIcons name="notifications" size={20} color={colors.primary} />
       </Pressable>
     </View>
   );
@@ -36,21 +72,9 @@ const styles = StyleSheet.create({
   greetingText: {
     fontSize: 24,
     fontWeight: "bold",
-    color: COLORS.primary,
-  },
-  subtitleText: {
-    fontSize: 14,
-    color: COLORS.secondaryText,
-    marginTop: 2,
   },
   notificationButton: {
     padding: 6,
     borderRadius: 20,
-    backgroundColor: COLORS.card,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
   },
 });

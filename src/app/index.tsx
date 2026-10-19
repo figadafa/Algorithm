@@ -1,35 +1,55 @@
-import {
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import React, { useEffect, useMemo, useState } from "react";
+import { ScrollView, StatusBar, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import BottomNav from "../components/BottomNav";
-import CourseCard, { type LearningPath } from "../components/CourseCard";
-import DailyGoal from "../components/DailyGoal";
-import Header from "../components/Header";
-import StreakCard from "../components/StreakCard";
-import { COLORS } from "../components/theme";
+import BottomNav from "@/components/BottomNav";
+import CourseCard from "@/components/CourseCard";
+import DailyGoal from "@/components/DailyGoal";
+import Header from "@/components/Header";
+import StreakCard from "@/components/StreakCard";
+import { ThemeProvider, useTheme } from "@/context/ThemeContext";
+import { learningPaths } from "@/data/learningPaths";
+import { globalStyles } from "@/styles";
 
-const learningPaths: LearningPath[] = [
-  { id: 1, title: "RPL", description: "Build software", icon: "code" },
-  { id: 2, title: "Game", description: "Create games", icon: "sports-esports" },
-  { id: 3, title: "Data", description: "Explore data & AI", icon: "storage" },
-  {
-    id: 4,
-    title: "Network",
-    description: "Secure systems",
-    icon: "security",
-  },
-];
-
-export default function HomeScreen() {
+function HomeScreenContent() {
   const insets = useSafeAreaInsets();
+  const { colors, darkMode } = useTheme();
 
+  // 1. useState dengan generic eksplisit
+  const [streak, setStreak] = useState<number>(0);
+  const [completedDays, setCompletedDays] = useState<boolean[]>(
+    new Array(7).fill(false)
+  );
+  const [dailyGoalCompleted, setDailyGoalCompleted] = useState<boolean>(false);
+
+  // 2. useMemo untuk menghitung persentase hari selesai
+  const progressPercentage = useMemo(() => {
+    const completedCount = completedDays.filter((day) => day).length;
+    return Math.round((completedCount / 7) * 100);
+  }, [completedDays]);
+
+  // 3. useEffect untuk pesan penyemangat saat daily goal selesai
+  useEffect(() => {
+    if (dailyGoalCompleted) {
+      console.log("Mantap! Kamu telah menyelesaikan target hari ini. 🔥");
+    }
+  }, [dailyGoalCompleted]);
+
+  // Logika Start Learning
   const handleStartLearning = () => {
-    console.log("Start Learning button pressed!");
+    // Ambil indeks hari saat ini (Senin=0, Minggu=6)
+    const currentDayIndex = (new Date().getDay() + 6) % 7;
+
+    // Set goal hari ini selesai
+    setDailyGoalCompleted(true);
+
+    // Update streak dan completedDays jika hari ini belum ditandai selesai
+    // Ini simulasi streak sederhana: hanya bertambah sekali per hari saat tombol ditekan
+    if (!completedDays[currentDayIndex]) {
+      const newCompletedDays = [...completedDays];
+      newCompletedDays[currentDayIndex] = true;
+      setCompletedDays(newCompletedDays);
+      setStreak((prev) => prev + 1);
+    }
   };
 
   const handleNotificationPress = () => {
@@ -41,17 +61,34 @@ export default function HomeScreen() {
   };
 
   return (
-    <View style={[styles.safeArea, { paddingTop: insets.top }]}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+    <View
+      style={[
+        styles.safeArea,
+        { paddingTop: insets.top, backgroundColor: colors.background },
+      ]}
+    >
+      <StatusBar
+        barStyle={darkMode ? "light-content" : "dark-content"}
+        backgroundColor={colors.background}
+      />
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
         <Header onNotificationPress={handleNotificationPress} />
-        <StreakCard />
-        <DailyGoal onStartLearning={handleStartLearning} />
+        <StreakCard streak={streak} completedDays={completedDays} />
+        <DailyGoal
+          isCompleted={dailyGoalCompleted}
+          onStartLearning={handleStartLearning}
+        />
 
         <View style={styles.sectionTitleContainer}>
           <View>
-            <Text style={styles.sectionTitle}>Explore Courses</Text>
-            <Text style={styles.subtitleText}>Find something to learn</Text>
+            <Text
+              style={[globalStyles.sectionTitle, { color: colors.primary }]}
+            >
+              Explore Courses
+            </Text>
+            <Text style={[globalStyles.subtitleText, { color: colors.text }]}>
+              Progress minggu ini: {progressPercentage}%
+            </Text>
           </View>
         </View>
         <View style={styles.courseGrid}>
@@ -69,10 +106,17 @@ export default function HomeScreen() {
   );
 }
 
+export default function HomeScreen() {
+  return (
+    <ThemeProvider>
+      <HomeScreenContent />
+    </ThemeProvider>
+  );
+}
+
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: COLORS.background,
   },
   scrollViewContent: {
     paddingVertical: 12,
@@ -81,16 +125,6 @@ const styles = StyleSheet.create({
   },
   sectionTitleContainer: {
     marginBottom: 12,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: COLORS.primary,
-  },
-  subtitleText: {
-    fontSize: 14,
-    color: COLORS.secondaryText,
-    marginTop: 2,
   },
   courseGrid: {
     flexDirection: "row",

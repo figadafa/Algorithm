@@ -1,6 +1,7 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { BORDER_RADIUS, COLORS } from "./theme";
+import { BORDER_RADIUS, useTheme } from "@/context/ThemeContext";
+import { globalStyles } from "@/styles";
 
 export interface LearningPath {
   id: number;
@@ -14,16 +15,17 @@ interface CourseCardProps {
 }
 
 export default function CourseCard({ learningPath }: CourseCardProps) {
+  const { colors } = useTheme();
   return (
-    <Pressable accessibilityRole="button" style={styles.courseCard}>
+    <Pressable accessibilityRole="button" style={[styles.courseCard, globalStyles.shadow, { backgroundColor: colors.cardBackground, borderRadius: BORDER_RADIUS, borderColor: colors.border }]}>
       <MaterialIcons
         name={learningPath.icon}
         size={24}
-        color={COLORS.primary}
+        color={colors.primary}
       />
       <View style={styles.courseTextContainer}>
-        <Text style={styles.courseTitle}>{learningPath.title}</Text>
-        <Text style={styles.courseDescription}>
+        <Text style={[styles.courseTitle, { color: colors.primary }]}>{learningPath.title}</Text>
+        <Text style={[styles.courseDescription, { color: colors.text }]}>
           {learningPath.description}
         </Text>
       </View>
@@ -34,19 +36,11 @@ export default function CourseCard({ learningPath }: CourseCardProps) {
 const styles = StyleSheet.create({
   courseCard: {
     width: "48%",
-    backgroundColor: COLORS.card,
-    borderRadius: BORDER_RADIUS,
     padding: 12,
     marginBottom: 12,
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: COLORS.borderColor,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
   },
   courseTextContainer: {
     marginLeft: 8,
@@ -55,10 +49,8 @@ const styles = StyleSheet.create({
   courseTitle: {
     fontSize: 14,
     fontWeight: "bold",
-    color: COLORS.primary,
   },
   courseDescription: {
     fontSize: 11,
-    color: COLORS.secondaryText,
   },
 });
