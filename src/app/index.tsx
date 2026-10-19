@@ -1,18 +1,19 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { ScrollView, StatusBar, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import BottomNav from "@/components/BottomNav";
+import { useRouter } from "expo-router";
 import CourseCard from "@/components/CourseCard";
 import DailyGoal from "@/components/DailyGoal";
 import Header from "@/components/Header";
 import StreakCard from "@/components/StreakCard";
-import { ThemeProvider, useTheme } from "@/context/ThemeContext";
+import { useTheme } from "@/context/ThemeContext";
 import { learningPaths } from "@/data/learningPaths";
 import { globalStyles } from "@/styles";
 
 function HomeScreenContent() {
   const insets = useSafeAreaInsets();
   const { colors, darkMode } = useTheme();
+  const router = useRouter();
 
   // 1. useState dengan generic eksplisit
   const [streak, setStreak] = useState<number>(0);
@@ -56,8 +57,9 @@ function HomeScreenContent() {
     console.log("Notification icon pressed!");
   };
 
-  const handleNavPress = (label: string) => {
-    console.log(`Navigation item "${label}" pressed!`);
+  // Logika navigasi ke detail course (/course/[id])
+  const handleCoursePress = (id: number) => {
+    router.push({ pathname: "/course/[id]", params: { id: String(id) } });
   };
 
   return (
@@ -93,25 +95,20 @@ function HomeScreenContent() {
         </View>
         <View style={styles.courseGrid}>
           {learningPaths.map((path) => (
-            <CourseCard key={path.id} learningPath={path} />
+            <CourseCard
+              key={path.id}
+              learningPath={path}
+              onPress={() => handleCoursePress(path.id)}
+            />
           ))}
         </View>
       </ScrollView>
-
-      <BottomNav
-        bottomInset={insets.bottom}
-        onPress={(label) => handleNavPress(label)}
-      />
     </View>
   );
 }
 
 export default function HomeScreen() {
-  return (
-    <ThemeProvider>
-      <HomeScreenContent />
-    </ThemeProvider>
-  );
+  return <HomeScreenContent />;
 }
 
 const styles = StyleSheet.create({
