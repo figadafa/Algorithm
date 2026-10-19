@@ -9,7 +9,7 @@ interface HeaderProps {
 }
 
 export default function Header({ onNotificationPress }: HeaderProps) {
-  const { colors } = useTheme();
+  const { colors, darkMode, toggleTheme } = useTheme();
   const [greeting, setGreeting] = useState<string>("");
 
   useEffect(() => {
@@ -45,18 +45,38 @@ export default function Header({ onNotificationPress }: HeaderProps) {
           Ready to start learning?
         </Text>
       </View>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Notifications"
-        onPress={onNotificationPress}
-        style={[
-          styles.notificationButton,
-          globalStyles.shadow,
-          { backgroundColor: colors.cardBackground },
-        ]}
-      >
-        <MaterialIcons name="notifications" size={20} color={colors.primary} />
-      </Pressable>
+      <View style={styles.headerActions}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={
+            darkMode ? "Switch to light mode" : "Switch to dark mode"
+          }
+          onPress={toggleTheme}
+          style={[
+            styles.iconButton,
+            globalStyles.shadow,
+            { backgroundColor: colors.cardBackground },
+          ]}
+        >
+          <MaterialIcons
+            name={darkMode ? "light-mode" : "dark-mode"}
+            size={20}
+            color={colors.primary}
+          />
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Notifications"
+          onPress={onNotificationPress}
+          style={[
+            styles.iconButton,
+            globalStyles.shadow,
+            { backgroundColor: colors.cardBackground },
+          ]}
+        >
+          <MaterialIcons name="notifications" size={20} color={colors.primary} />
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -73,7 +93,12 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
   },
-  notificationButton: {
+  headerActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  iconButton: {
     padding: 6,
     borderRadius: 20,
   },

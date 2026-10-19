@@ -12,12 +12,13 @@ export interface LearningPath {
 
 interface CourseCardProps {
   learningPath: LearningPath;
+  onPress?: () => void;
 }
 
-export default function CourseCard({ learningPath }: CourseCardProps) {
+export default function CourseCard({ learningPath, onPress }: CourseCardProps) {
   const { colors } = useTheme();
   return (
-    <Pressable accessibilityRole="button" style={[styles.courseCard, globalStyles.shadow, { backgroundColor: colors.cardBackground, borderRadius: BORDER_RADIUS, borderColor: colors.border }]}>
+    <Pressable accessibilityRole="button" onPress={onPress} style={[styles.courseCard, globalStyles.shadow, { backgroundColor: colors.cardBackground, borderRadius: BORDER_RADIUS, borderColor: colors.border }]}>
       <MaterialIcons
         name={learningPath.icon}
         size={24}
