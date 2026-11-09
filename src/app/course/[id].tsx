@@ -11,13 +11,16 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BORDER_RADIUS, useTheme } from "@/context/ThemeContext";
+import LearningMaterialsList from "@/components/LearningMaterialsList";
 import { learningPaths } from "@/data/learningPaths";
+import { useLearningMaterials } from "@/hooks/useLearningMaterials";
 import { globalStyles } from "@/styles";
 
 export default function CourseDetailScreen() {
   const insets = useSafeAreaInsets();
   const { colors, darkMode } = useTheme();
   const router = useRouter();
+  const { materials, loading, error, retry } = useLearningMaterials();
 
   // Ambil parameter dinamis dari route /course/[id]
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -63,30 +66,14 @@ export default function CourseDetailScreen() {
             <Text style={[globalStyles.subtitleText, { color: colors.text }]}>
               {course.description}
             </Text>
-
-            <View
-              style={[
-                styles.welcomeCard,
-                globalStyles.shadow,
-                {
-                  backgroundColor: colors.cardBackground,
-                  borderRadius: BORDER_RADIUS,
-                  borderColor: colors.border,
-                },
-              ]}
-            >
-              <MaterialIcons
-                name={course.icon}
-                size={32}
-                color={colors.primary}
-              />
-              <Text style={[styles.cardTitle, { color: colors.primary }]}>
-                Welcome to {course.title}
-              </Text>
-              <Text style={[styles.cardDescription, { color: colors.text }]}>
-                Detail materi untuk jalur belajar ini sedang disiapkan.
-              </Text>
-            </View>
+            <LearningMaterialsList
+              materials={materials.filter(
+                (material) => material.kategori === course.title
+              )}
+              loading={loading}
+              error={error}
+              onRetry={retry}
+            />
           </>
         ) : (
           <View
@@ -105,7 +92,7 @@ export default function CourseDetailScreen() {
               Course not found
             </Text>
             <Text style={[styles.cardDescription, { color: colors.text }]}>
-              Learning path dengan id "{String(id)}" tidak ditemukan.
+              Learning path dengan id &quot;{String(id)}&quot; tidak ditemukan.
             </Text>
           </View>
         )}
