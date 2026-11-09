@@ -2,7 +2,7 @@ import { LearningMaterial } from "@/api/learningMaterials";
 import { BORDER_RADIUS, useTheme } from "@/context/ThemeContext";
 import { globalStyles } from "@/styles";
 import { MaterialIcons } from "@expo/vector-icons";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Linking, Pressable, StyleSheet, Text, View } from "react-native";
 
 interface LearningMaterialsListProps {
   materials: LearningMaterial[];
@@ -54,30 +54,53 @@ export default function LearningMaterialsList({
 
   return (
     <View style={styles.list}>
-      {materials.map((material) => (
-        <View
-          key={material.id}
-          style={[
-            styles.materialCard,
-            globalStyles.shadow,
-            {
-              backgroundColor: colors.cardBackground,
-              borderColor: colors.border,
-              borderRadius: BORDER_RADIUS,
-            },
-          ]}
-        >
-          <MaterialIcons name="menu-book" size={22} color={colors.primary} />
-          <View style={styles.materialText}>
-            <Text style={[styles.materialTitle, { color: colors.primary }]}>
-              {material.judul}
-            </Text>
-            <Text style={[styles.materialUrl, { color: colors.secondary }]}>
-              {material.url}
-            </Text>
-          </View>
-        </View>
-      ))}
+      {materials.map((material) => {
+        const openMaterial = async () => {
+          try {
+            const url = new URL(material.url);
+            if (url.protocol !== "https:") {
+              throw new Error("Tautan materi harus menggunakan HTTPS.");
+            }
+            await Linking.openURL(url.toString());
+          } catch (openError) {
+            Alert.alert(
+              "Gagal membuka materi",
+              openError instanceof Error
+                ? openError.message
+                : "Tautan materi tidak dapat dibuka."
+            );
+          }
+        };
+
+        return (
+          <Pressable
+            key={material.id}
+            accessibilityRole="link"
+            accessibilityLabel={`Buka materi ${material.judul}`}
+            onPress={openMaterial}
+            style={({ pressed }) => [
+              styles.materialCard,
+              globalStyles.shadow,
+              {
+                backgroundColor: colors.cardBackground,
+                borderColor: colors.border,
+                borderRadius: BORDER_RADIUS,
+                opacity: pressed ? 0.75 : 1,
+              },
+            ]}
+          >
+            <MaterialIcons name="menu-book" size={22} color={colors.primary} />
+            <View style={styles.materialText}>
+              <Text style={[styles.materialTitle, { color: colors.primary }]}>
+                {material.judul}
+              </Text>
+              <Text style={[styles.materialUrl, { color: colors.secondary }]}>
+                {material.url}
+              </Text>
+            </View>
+          </Pressable>
+        );
+      })}
     </View>
   );
 }
