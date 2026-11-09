@@ -20,31 +20,36 @@ export function useLearningMaterials(): LearningMaterialsState {
   useEffect(() => {
     let active = true;
 
-    const loadMaterials = async () => {
+    const loadMaterials = () => {
       setLoading(true);
       setError(null);
 
-      try {
-        const result = await fetchLearningMaterials();
-        if (active) {
-          setMaterials(result);
-        }
-      } catch (loadError) {
-        if (active) {
-          setError(
-            loadError instanceof Error
-              ? loadError.message
-              : "Terjadi kesalahan saat memuat materi."
-          );
-        }
-      } finally {
-        if (active) {
-          setLoading(false);
-        }
-      }
+      // .then() digunakan untuk menangani hasil Promise yang berhasil (resolve)
+      fetchLearningMaterials()
+        .then((result) => {
+          if (active) {
+            setMaterials(result);
+          }
+        })
+        // .catch() digunakan untuk menangani hasil Promise yang gagal (reject)
+        .catch((loadError) => {
+          if (active) {
+            setError(
+              loadError instanceof Error
+                ? loadError.message
+                : "Terjadi kesalahan saat memuat materi."
+            );
+          }
+        })
+        // .finally() menjalankan kode setelah Promise selesai (baik berhasil maupun gagal)
+        .finally(() => {
+          if (active) {
+            setLoading(false);
+          }
+        });
     };
 
-    void loadMaterials();
+    loadMaterials();
 
     return () => {
       active = false;

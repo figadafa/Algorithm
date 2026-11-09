@@ -27,26 +27,45 @@ function isLearningMaterial(value: unknown): value is LearningMaterial {
   );
 }
 
-export async function fetchLearningMaterials(): Promise<LearningMaterial[]> {
-  const response = await fetch(LEARNING_MATERIALS_URL);
+export function fetchLearningMaterials(): Promise<LearningMaterial[]> {
+  return new Promise((resolve, reject) => {
+    fetch(LEARNING_MATERIALS_URL)
+      .then((response) => {
+        if (!response.ok) {
+          // reject() digunakan untuk menangani kondisi error HTTP
+          reject(new Error(`Gagal memuat materi (HTTP ${response.status}).`));
+          return;
+        }
+        return response.json();
+      })
+      .then((payload: unknown) => {
+        if (payload === undefined) return;
 
-  if (!response.ok) {
-    throw new Error(`Gagal memuat materi (HTTP ${response.status}).`);
-  }
+        if (typeof payload !== "object" || payload === null) {
+          reject(new Error("Format respons API materi tidak valid."));
+          return;
+        }
 
-  const payload: unknown = await response.json();
-  if (typeof payload !== "object" || payload === null) {
-    throw new Error("Format respons API materi tidak valid.");
-  }
+        const result = payload as Partial<LearningMaterialsResponse>;
+        if (
+          result.success !== true ||
+          !Array.isArray(result.data) ||
+          !result.data.every(isLearningMaterial)
+        ) {
+          reject(new Error("Format respons API materi tidak valid."));
+          return;
+        }
 
-  const result = payload as Partial<LearningMaterialsResponse>;
-  if (
-    result.success !== true ||
-    !Array.isArray(result.data) ||
-    !result.data.every(isLearningMaterial)
-  ) {
-    throw new Error("Format respons API materi tidak valid.");
-  }
-
-  return result.data;
+        // resolve() digunakan untuk mengembalikan data ketika operasi berhasil
+        resolve(result.data);
+      })
+      .catch((error) => {
+        // Menangani error jaringan atau error lainnya
+        if (error instanceof TypeError && error.message === 'Failed to fetch') {
+          reject(new Error("Koneksi internet bermasalah. Periksa koneksi Anda dan coba lagi."));
+        } else {
+          reject(error instanceof Error ? error : new Error("Terjadi kesalahan saat memuat materi."));
+        }
+      });
+  });
 }

@@ -23,13 +23,7 @@ function HomeScreenContent() {
   const router = useRouter();
   const { colors, darkMode } = useTheme();
 
-  const {
-    streak,
-    completedDays,
-    dailyGoalCompleted,
-    progressPercentage,
-    handleStartLearning,
-  } = useLearningProgress();
+  const { streak, dailyGoalCompleted, progressPercentage, startDailyGoalSession } = useLearningProgress();
 
   useEffect(() => {
     if (dailyGoalCompleted) {
@@ -66,11 +60,11 @@ function HomeScreenContent() {
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
         <Header onNotificationPress={handleNotificationPress} />
 
-        <StreakCard streak={streak} completedDays={completedDays} />
+        <StreakCard streak={streak} />
 
         <DailyGoal
           isCompleted={dailyGoalCompleted}
-          onStartLearning={handleStartLearning}
+          onStartLearning={startDailyGoalSession}
         />
 
         <View style={styles.sectionTitleContainer}>

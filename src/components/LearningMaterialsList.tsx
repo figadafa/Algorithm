@@ -3,6 +3,7 @@ import { BORDER_RADIUS, useTheme } from "@/context/ThemeContext";
 import { globalStyles } from "@/styles";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Alert, Linking, Pressable, StyleSheet, Text, View } from "react-native";
+import { useLearningProgress } from "@/context/LearningProgressContext"; // Import context
 
 interface LearningMaterialsListProps {
   materials: LearningMaterial[];
@@ -18,6 +19,7 @@ export default function LearningMaterialsList({
   onRetry,
 }: LearningMaterialsListProps) {
   const { colors } = useTheme();
+  const { completeLearningSession } = useLearningProgress(); // Get completion function
 
   if (loading) {
     return (
@@ -62,6 +64,9 @@ export default function LearningMaterialsList({
               throw new Error("Tautan materi harus menggunakan HTTPS.");
             }
             await Linking.openURL(url.toString());
+            
+            // Mark session as completed when material is opened
+            await completeLearningSession();
           } catch (openError) {
             Alert.alert(
               "Gagal membuka materi",
