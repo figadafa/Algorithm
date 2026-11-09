@@ -1,0 +1,11 @@
+{
+  "name": "algorithm-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "REST API read-only untuk data materi pembelajaran ALGORITHM_api.",
+  "type": "commonjs",
+  "main": "api/data.js",
+  "scripts": {
+    "dev": "vercel dev"
+  }
+}
