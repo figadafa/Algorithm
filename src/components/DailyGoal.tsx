@@ -2,6 +2,7 @@ import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { BORDER_RADIUS, useTheme } from "@/context/ThemeContext";
 import { globalStyles } from "@/styles";
+import { useLearningProgress } from "@/context/LearningProgressContext"; // Import context
 
 interface DailyGoalProps {
   isCompleted: boolean;
@@ -13,6 +14,7 @@ export default function DailyGoal({
   onStartLearning,
 }: DailyGoalProps) {
   const { colors } = useTheme();
+  const { isDailyGoalActive } = useLearningProgress(); // Get isDailyGoalActive from context
 
   return (
     <View>
@@ -45,20 +47,20 @@ export default function DailyGoal({
         <Pressable
           accessibilityRole="button"
           onPress={onStartLearning}
-          disabled={isCompleted}
+          disabled={isCompleted || isDailyGoalActive}
           style={[
             styles.startButton,
             {
-              backgroundColor: isCompleted ? colors.secondary : colors.primary,
+              backgroundColor: (isCompleted || isDailyGoalActive) ? colors.secondary : colors.primary,
               borderRadius: BORDER_RADIUS / 2,
-              opacity: isCompleted ? 0.7 : 1,
+              opacity: (isCompleted || isDailyGoalActive) ? 0.7 : 1,
             },
           ]}
         >
           <Text
             style={[styles.startButtonText, { color: colors.cardBackground }]}
           >
-            {isCompleted ? "COMPLETED" : "START →"}
+            {isCompleted ? "COMPLETED" : (isDailyGoalActive ? "IN PROGRESS" : "START →")}
           </Text>
         </Pressable>
       </View>

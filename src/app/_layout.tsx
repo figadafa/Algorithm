@@ -8,6 +8,7 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
+// Komponen ini berada di dalam ThemeProvider & SafeAreaProvider, sehingga aman memanggil useTheme() dan useSafeAreaInsets().
 function RootLayoutContent() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
