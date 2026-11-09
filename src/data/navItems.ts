@@ -12,4 +12,5 @@ export const navItems: NavItem[] = [
   { id: 2, label: "Learn", icon: "book", isActive: false },
   { id: 3, label: "Achievement", icon: "emoji-events", isActive: false },
   { id: 4, label: "Profile", icon: "person", isActive: false },
+  { id: 5, label: "help", icon: "help", isActive: false },
 ];

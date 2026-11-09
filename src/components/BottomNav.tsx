@@ -1,9 +1,8 @@
-import { MaterialIcons } from "@expo/vector-icons";
-import { Href, usePathname, useRouter } from "expo-router";
-import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTheme } from "@/context/ThemeContext";
 import { navItems } from "@/data/navItems";
+import { MaterialIcons } from "@expo/vector-icons";
+import { Href, usePathname, useRouter } from "expo-router";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 interface BottomNavProps {
   bottomInset: number;
@@ -15,6 +14,7 @@ const routeByLabel: Record<string, Href> = {
   Learn: "/learn",
   Achievement: "/achievement",
   Profile: "/profile",
+  help: "/helpdemo",
 };
 
 // Menentukan item navigasi yang aktif berdasarkan pathname saat ini.
