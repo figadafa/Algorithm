@@ -9,11 +9,11 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   Platform,
-  SafeAreaView
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { useTheme } from '@/context/ThemeContext';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const LoginScreen: React.FC = () => {
   const [email, setEmail] = useState('');
