@@ -1,58 +1,41 @@
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
-// Kunci untuk menyimpan token otentikasi
-export const TOKEN_KEY = "elearning_user_token";
-
-/**
- * Menyimpan token otentikasi secara aman.
- * Menggunakan SecureStore untuk native dan localStorage untuk web.
- * @param token Token yang akan disimpan
- */
-export async function saveAuthToken(token: string): Promise<void> {
+export async function getSecureItem(key: string): Promise<string | null> {
   try {
     if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
-      localStorage.setItem(TOKEN_KEY, token);
+      return localStorage.getItem(key);
     } else {
-      await SecureStore.setItemAsync(TOKEN_KEY, token);
+      return await SecureStore.getItemAsync(key);
     }
   } catch (error) {
-    console.error("Gagal menyimpan token:", error);
-    throw new Error("Gagal menyimpan token");
+    console.error(`Gagal mengambil item dari secure storage untuk kunci ${key}:`, error);
+    return null;
   }
 }
 
-/**
- * Mengambil token otentikasi yang tersimpan.
- * Menggunakan SecureStore untuk native dan localStorage untuk web.
- * @returns Token yang tersimpan atau null jika tidak ada
- */
-export async function getAuthToken(): Promise<string | null> {
+export async function setSecureItem(key: string, value: string): Promise<void> {
   try {
     if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
-      return localStorage.getItem(TOKEN_KEY);
+      localStorage.setItem(key, value);
     } else {
-      return await SecureStore.getItemAsync(TOKEN_KEY);
+      await SecureStore.setItemAsync(key, value);
     }
   } catch (error) {
-    console.error("Gagal mengambil token:", error);
-    throw new Error("Gagal mengambil token");
+    console.error(`Gagal menyimpan item ke secure storage untuk kunci ${key}:`, error);
+    throw new Error(`Gagal menyimpan item untuk kunci ${key}`);
   }
 }
 
-/**
- * Menghapus token otentikasi yang tersimpan.
- * Menggunakan SecureStore untuk native dan localStorage untuk web.
- */
-export async function deleteAuthToken(): Promise<void> {
+export async function deleteSecureItem(key: string): Promise<void> {
   try {
     if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
-      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(key);
     } else {
-      await SecureStore.deleteItemAsync(TOKEN_KEY);
+      await SecureStore.deleteItemAsync(key);
     }
   } catch (error) {
-    console.error("Gagal menghapus token:", error);
-    throw new Error("Gagal menghapus token");
+    console.error(`Gagal menghapus item dari secure storage untuk kunci ${key}:`, error);
+    throw new Error(`Gagal menghapus item untuk kunci ${key}`);
   }
 }

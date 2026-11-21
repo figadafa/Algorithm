@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
-import * as SecureStore from 'expo-secure-store';
 import { Platform, AppState, AppStateStatus } from 'react-native';
+import { getSecureItem, setSecureItem, deleteSecureItem } from './secureStorage';
 
 // Pastikan variabel lingkungan sudah terisi
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
@@ -12,27 +12,9 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 // Adapter untuk Expo SecureStore dan localStorage
 const ExpoSecureStoreAdapter = {
-  getItem: (key: string) => {
-    if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
-      return localStorage.getItem(key);
-    } else {
-      return SecureStore.getItemAsync(key);
-    }
-  },
-  setItem: (key: string, value: string) => {
-    if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
-      localStorage.setItem(key, value);
-    } else {
-      return SecureStore.setItemAsync(key, value);
-    }
-  },
-  removeItem: (key: string) => {
-    if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
-      localStorage.removeItem(key);
-    } else {
-      return SecureStore.deleteItemAsync(key);
-    }
-  },
+  getItem: (key: string) => getSecureItem(key),
+  setItem: (key: string, value: string) => setSecureItem(key, value),
+  removeItem: (key: string) => deleteSecureItem(key),
 };
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
