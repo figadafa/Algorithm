@@ -22,6 +22,7 @@ const LoginScreen: React.FC = () => {
   const [isRegistering, setIsRegistering] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState<'error' | 'info'>('error');
   
   const { colors } = useTheme();
   const router = useRouter();
@@ -35,16 +36,19 @@ const LoginScreen: React.FC = () => {
     // Validasi input
     if (!trimmedEmail || !password) {
       setMessage('Email dan password wajib diisi.');
+      setMessageType('error');
       return;
     }
 
     if (password.length < 6) {
       setMessage('Password minimal 6 karakter.');
+      setMessageType('error');
       return;
     }
 
     if (isRegistering && trimmedCallsign.length < 3) {
       setMessage('Nama panggilan minimal 3 karakter.');
+      setMessageType('error');
       return;
     }
 
@@ -71,6 +75,7 @@ const LoginScreen: React.FC = () => {
           router.replace("/");
         } else {
           setMessage("Pendaftaran berhasil, cek email untuk verifikasi");
+          setMessageType("info");
         }
       } else {
         // Proses Masuk (LOGIN)
@@ -90,6 +95,7 @@ const LoginScreen: React.FC = () => {
       }
     } catch (error: any) {
       setMessage(error.message);
+      setMessageType('error');
     } finally {
       setLoading(false);
     }
@@ -158,7 +164,7 @@ const LoginScreen: React.FC = () => {
       fontSize: 14,
     },
     messageText: {
-      color: colors.notification,
+      color: messageType === 'error' ? colors.notification : colors.primary,
       textAlign: 'center',
       marginBottom: 15,
       fontSize: 14,
