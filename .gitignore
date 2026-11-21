@@ -44,3 +44,6 @@ example
 
 # Local backup files
 backup-figa-progress/
+
+# local env files
+.env

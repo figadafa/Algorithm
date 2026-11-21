@@ -1,7 +1,6 @@
 # Integrasi API Materi Pembelajaran
 
-Dokumen ini menjelaskan integrasi API eksternal untuk menampilkan materi
-pembelajaran berdasarkan kategori pada aplikasi.
+Dokumen ini menjelaskan integrasi API eksternal untuk menampilkan materi pembelajaran berdasarkan kategori pada aplikasi, lengkap dengan implementasi Promise sesuai rubrik Modul 3.
 
 ## API yang digunakan
 
@@ -11,56 +10,73 @@ Endpoint:
 https://algorithm-api-ten.vercel.app/api/data
 ```
 
-API mengembalikan objek dengan informasi status, jumlah materi, dan daftar
-materi. Setiap materi memiliki `id`, `kategori`, `judul`, dan `url`. Kategori
-yang digunakan aplikasi adalah `RPL`, `Game`, `Data`, dan `Network`.
+API mengembalikan objek dengan informasi status, jumlah materi, dan daftar materi. Interface `LearningMaterial` digunakan untuk memetakan data sebagai berikut:
 
-## Perubahan yang ditambahkan
+```typescript
+export interface LearningMaterial {
+  id: number;
+  kategori: string;
+  judul: string;
+  url: string;
+}
+```
 
-- `src/api/learningMaterials.ts` mendefinisikan interface `LearningMaterial`
-  dan fungsi async `fetchLearningMaterials()` untuk mengambil serta memvalidasi
-  data dari API.
-- `src/hooks/useLearningMaterials.ts` menyediakan hook untuk memuat data secara
-  async dan menyimpan status loading, error, serta aksi untuk mencoba kembali.
-- `src/components/LearningMaterialsList.tsx` menampilkan daftar materi dan
-  menangani tampilan loading, error, materi kosong, serta tombol coba lagi.
-- `src/app/learn.tsx` menampilkan tab kategori. Materi yang terlihat disaring
-  berdasarkan kategori tab yang dipilih.
-- `src/app/course/[id].tsx` menampilkan daftar materi untuk kategori jalur
-  belajar yang dibuka.
+Kategori yang didukung adalah `RPL`, `Game`, `Data`, dan `Network`.
 
-## Kesesuaian dengan screenshot
+## Implementasi Promise (Modul 3)
 
-### Mengambil data External API dan memasukkannya ke Object menggunakan Interface — 10%
+Sesuai dengan ketentuan rubrik, aplikasi ini menggunakan implementasi `Promise` yang mencakup `new Promise`, `resolve`, `reject`, serta chaining `.then()`, `.catch()`, dan `.finally()`.
 
-Implementasi ini ada di `src/api/learningMaterials.ts`:
+### 1. `new Promise()`, `resolve()`, dan `reject()`
+Ditemukan di `src/api/learningMaterials.ts`. Fungsi `fetchLearningMaterials()` membungkus operasi `fetch` untuk memberikan kontrol penuh atas lifecycle request.
 
-- `LearningMaterial` mendefinisikan bentuk objek tiap materi dengan properti
-  bertipe.
-- `fetchLearningMaterials()` mengambil JSON dari endpoint eksternal dan
-  memeriksa bentuk respons sebelum mengembalikan daftar materi.
-- Data respons digunakan sebagai object `LearningMaterial` dan kemudian
-  dikelompokkan di tampilan berdasarkan nilai `kategori`.
+```typescript
+export function fetchLearningMaterials(): Promise<LearningMaterial[]> {
+  return new Promise((resolve, reject) => {
+    fetch(LEARNING_MATERIALS_URL)
+      .then((response) => {
+        if (!response.ok) {
+          reject(new Error(`Gagal memuat materi (HTTP ${response.status}).`));
+          return;
+        }
+        return response.json();
+      })
+      .then((payload: unknown) => {
+        // ... validasi data ...
+        resolve(result.data); // Sukses
+      })
+      .catch((error) => {
+        // Handle error koneksi atau logika
+        reject(error); // Gagal
+      });
+  });
+}
+```
 
-### Menggunakan Custom & Pre-built Async Function — 10%
+### 2. `.then()`, `.catch()`, dan `.finally()`
+Ditemukan di `src/hooks/useLearningMaterials.ts`. Hook ini mengonsumsi Promise dari API:
 
-Implementasi ini menggunakan keduanya:
+```typescript
+fetchLearningMaterials()
+  .then((result) => setMaterials(result)) // Menangani resolve
+  .catch((loadError) => setError(loadError.message)) // Menangani reject
+  .finally(() => setLoading(false)); // Eksekusi akhir
+```
 
-- **Pre-built async function:** `fetch()` bawaan JavaScript digunakan untuk
-  melakukan request HTTP, dan `response.json()` digunakan untuk membaca JSON.
-- **Custom async function:** `fetchLearningMaterials()` adalah fungsi async
-  buatan aplikasi yang memanggil `fetch()`, memeriksa respons, dan mengembalikan
-  data bertipe `LearningMaterial[]`.
-- Hook `useLearningMaterials()` memanggil fungsi tersebut secara async saat
-  layar membutuhkan data.
+## Error Handling
 
-## Alur data per kategori
+Aplikasi menangani berbagai skenario error dengan pesan ramah pengguna:
 
-1. Halaman Learn meminta seluruh materi melalui `useLearningMaterials()`.
-2. Tab kategori dipilih oleh pengguna.
-3. Daftar materi difilter dengan mencocokkan `material.kategori` terhadap
-   kategori tab yang aktif.
-4. Halaman detail course menggunakan kategori jalur belajar yang sama untuk
-   menampilkan daftar materi terkait.
+- **Error Jaringan**: "Koneksi internet bermasalah. Periksa koneksi Anda dan coba lagi."
+- **Error HTTP/Validasi**: Pesan spesifik seperti "Gagal memuat materi (HTTP 404)" atau "Format respons API materi tidak valid."
+- **Retry Mechanism**: Tombol "Coba lagi" memicu pemanggilan ulang fungsi fetch untuk memperbarui state.
+- **Loading State**: `loading` state dipastikan selalu berakhir `false` melalui `.finally()`.
 
-Jika request gagal, aplikasi menampilkan pesan error dan tombol **Coba lagi**.
+## Alur Data
+
+1. `useLearningMaterials()` memicu `fetchLearningMaterials()` saat komponen pertama kali dimuat.
+2. API dipanggil menggunakan `fetch()` (Pre-built Async Function).
+3. Data diproses di dalam Promise `fetchLearningMaterials()` (Custom Async Function).
+4. Hasil dikembalikan ke hook melalui `resolve` atau ditolak melalui `reject`.
+5. Hook memperbarui state (`materials`, `error`, `loading`) melalui chain `.then/catch/finally`.
+6. UI mendengarkan state dan menampilkan daftar materi yang sudah difilter berdasarkan kategori (`RPL`, `Game`, `Data`, `Network`).
