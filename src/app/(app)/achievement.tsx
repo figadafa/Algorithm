@@ -18,7 +18,6 @@ export default function AchievementScreen() {
     >
       <StatusBar
         barStyle={darkMode ? "light-content" : "dark-content"}
-        backgroundColor={colors.background}
       />
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
         <Text style={[globalStyles.sectionTitle, { color: colors.primary }]}>
