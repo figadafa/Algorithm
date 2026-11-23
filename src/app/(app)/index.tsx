@@ -54,7 +54,6 @@ function HomeScreenContent() {
     >
       <StatusBar
         barStyle={darkMode ? "light-content" : "dark-content"}
-        backgroundColor={colors.background}
       />
 
       <ScrollView contentContainerStyle={styles.scrollViewContent}>

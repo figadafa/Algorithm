@@ -1,6 +1,5 @@
 
 import React, { createContext, useState, useContext, ReactNode } from 'react';
-import { StyleSheet } from 'react-native';
 
 // Definisi interface untuk warna terang dan gelap
 interface Colors {

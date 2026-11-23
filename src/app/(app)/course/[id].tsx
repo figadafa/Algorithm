@@ -43,7 +43,6 @@ export default function CourseDetailScreen() {
     >
       <StatusBar
         barStyle={darkMode ? "light-content" : "dark-content"}
-        backgroundColor={colors.background}
       />
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
         <Pressable

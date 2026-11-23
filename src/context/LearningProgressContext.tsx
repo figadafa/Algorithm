@@ -1,58 +1,111 @@
-import React, { createContext, useState, useContext, ReactNode, useEffect, useMemo, useCallback } from 'react';
+import React, {
+  createContext,
+  useState,
+  useContext,
+  ReactNode,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef,
+} from 'react';
+import { useAuth } from '@/context/AuthContext';
 import { calculateStreak, isSameDay, formatDateLocal } from '@/utils/streakCalculator';
 import { saveStreakData, loadStreakData } from '@/storage/streakStorage';
 
 interface LearningProgressContextType {
   streak: number;
   dailyGoalCompleted: boolean;
-  isDailyGoalActive: boolean; 
+  isDailyGoalActive: boolean;
   progressPercentage: number;
   startDailyGoalSession: () => void;
   completeLearningSession: () => Promise<void>;
 }
 
+interface StreakSnapshot {
+  userId: string;
+  streak: number;
+  lastLearningDate: string | null;
+  dailyGoalCompleted: boolean;
+}
+
+const EMPTY_SNAPSHOT: StreakSnapshot = {
+  userId: '',
+  streak: 0,
+  lastLearningDate: null,
+  dailyGoalCompleted: false,
+};
+
 const LearningProgressContext = createContext<LearningProgressContextType | undefined>(undefined);
 
 export const LearningProgressProvider = ({ children }: { children: ReactNode }) => {
-  const [streak, setStreak] = useState<number>(0);
-  const [lastLearningDate, setLastLearningDate] = useState<string | null>(null);
-  const [dailyGoalCompleted, setDailyGoalCompleted] = useState<boolean>(false);
-  const [isDailyGoalActive, setIsDailyGoalActive] = useState<boolean>(false); 
+  const { user } = useAuth();
+  const userId = user?.id ?? '';
 
-  // Load streak data on component mount
+  const [snapshot, setSnapshot] = useState<StreakSnapshot>(EMPTY_SNAPSHOT);
+  const [isDailyGoalActive, setIsDailyGoalActive] = useState<boolean>(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
+
+  // Flag "sudah dimuat": ref dipakai supaya efek save tidak menulis nilai default
+  // sebelum data user baru selesai dimuat (atau saat user logout/berganti).
+  const loadedForUserId = useRef<string | null>(null);
+
+  // Snapshot milik user lain dianggap tidak aktif → tampilkan nilai default.
+  const activeSnapshot = snapshot.userId === userId ? snapshot : EMPTY_SNAPSHOT;
+  const streak = activeSnapshot.streak;
+  const lastLearningDate = activeSnapshot.lastLearningDate;
+  const dailyGoalCompleted = activeSnapshot.dailyGoalCompleted;
+
   useEffect(() => {
-    const fetchStreakData = async () => {
-      const { streak: storedStreak, lastLearningDate: storedLastLearningDate } = await loadStreakData();
-      
+    let cancelled = false;
+    // Ref diubah sinkron (bukan setState) untuk langsung memblokir efek save.
+    loadedForUserId.current = null;
+
+    if (!userId) return () => { cancelled = true; };
+
+    const loadForUser = async () => {
+      const { streak: storedStreak, lastLearningDate: storedLastLearningDate } = await loadStreakData(userId);
+
       const today = new Date();
       const todayStr = formatDateLocal(today);
 
       let effectiveStreak = storedStreak;
 
-      // Check if streak is broken
+      // Logika putusnya streak dipertahankan dari implementasi sebelumnya.
       if (storedLastLearningDate) {
         const lastDate = new Date(storedLastLearningDate);
         const diffTime = new Date(todayStr).getTime() - lastDate.getTime();
         const diffDays = Math.round(diffTime / (24 * 60 * 60 * 1000));
 
         if (diffDays > 1) {
-          // Streak broken
           effectiveStreak = 0;
-          await saveStreakData(0, storedLastLearningDate);
+          await saveStreakData(userId, 0, storedLastLearningDate);
         }
-        setDailyGoalCompleted(isSameDay(today, lastDate));
       }
 
-      setStreak(effectiveStreak);
-      setLastLearningDate(storedLastLearningDate);
-    };
-    fetchStreakData();
-  }, []);
+      if (cancelled) return;
 
-  // Save streak data whenever streak or lastLearningDate changes
+      setSnapshot({
+        userId,
+        streak: effectiveStreak,
+        lastLearningDate: storedLastLearningDate,
+        dailyGoalCompleted: storedLastLearningDate
+          ? isSameDay(today, new Date(storedLastLearningDate))
+          : false,
+      });
+      loadedForUserId.current = userId;
+      setDataLoaded(true);
+    };
+
+    void loadForUser();
+    return () => { cancelled = true; };
+  }, [userId]);
+
+  // Jangan menulis storage sebelum data user aktif selesai dimuat,
+  // dan jangan menulis sama sekali saat user null.
   useEffect(() => {
-    saveStreakData(streak, lastLearningDate);
-  }, [streak, lastLearningDate]);
+    if (!userId || !dataLoaded || loadedForUserId.current !== userId) return;
+    void saveStreakData(userId, streak, lastLearningDate);
+  }, [userId, dataLoaded, streak, lastLearningDate]);
 
   const progressPercentage = useMemo(() => {
     return dailyGoalCompleted ? 100 : 0;
@@ -64,12 +117,14 @@ export const LearningProgressProvider = ({ children }: { children: ReactNode }) 
   }, []);
 
   const completeLearningSession = useCallback(async () => {
-    if (!isDailyGoalActive && dailyGoalCompleted) {
-      return;
-    }
+    if (!isDailyGoalActive && dailyGoalCompleted) return;
+    if (!userId) return;
 
     const today = new Date();
     const currentDayStr = formatDateLocal(today);
+
+    let nextStreak = streak;
+    let nextLastLearningDate = lastLearningDate;
 
     // Only update streak if not already completed today
     if (lastLearningDate !== currentDayStr) {
@@ -78,12 +133,18 @@ export const LearningProgressProvider = ({ children }: { children: ReactNode }) 
         lastLearningDate,
         today
       );
-      setStreak(newStreak);
-      setLastLearningDate(newLastLearningDate);
+      nextStreak = newStreak;
+      nextLastLearningDate = newLastLearningDate;
     }
-    setDailyGoalCompleted(true);
+
+    setSnapshot({
+      userId,
+      streak: nextStreak,
+      lastLearningDate: nextLastLearningDate,
+      dailyGoalCompleted: true,
+    });
     setIsDailyGoalActive(false);
-  }, [streak, lastLearningDate, isDailyGoalActive, dailyGoalCompleted]);
+  }, [isDailyGoalActive, dailyGoalCompleted, lastLearningDate, streak, userId]);
 
   return (
     <LearningProgressContext.Provider

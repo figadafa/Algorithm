@@ -1,22 +1,28 @@
 // src/storage/streakStorage.ts
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const STREAK_KEY = '@daily_learning_streak';
-const LAST_LEARNING_DATE_KEY = '@last_learning_date';
+const streakKey = (userId: string) => `@daily_learning_streak:${userId}`;
+const lastLearningDateKey = (userId: string) => `@last_learning_date:${userId}`;
 
-export async function saveStreakData(streak: number, lastLearningDate: string | null) {
+export async function saveStreakData(
+  userId: string,
+  streak: number,
+  lastLearningDate: string | null,
+) {
   try {
-    await AsyncStorage.setItem(STREAK_KEY, streak.toString());
-    await AsyncStorage.setItem(LAST_LEARNING_DATE_KEY, lastLearningDate || '');
+    await AsyncStorage.setItem(streakKey(userId), streak.toString());
+    await AsyncStorage.setItem(lastLearningDateKey(userId), lastLearningDate || '');
   } catch (e) {
     console.error('Failed to save streak data', e);
   }
 }
 
-export async function loadStreakData(): Promise<{ streak: number; lastLearningDate: string | null }> {
+export async function loadStreakData(
+  userId: string,
+): Promise<{ streak: number; lastLearningDate: string | null }> {
   try {
-    const storedStreak = await AsyncStorage.getItem(STREAK_KEY);
-    const storedLastLearningDate = await AsyncStorage.getItem(LAST_LEARNING_DATE_KEY);
+    const storedStreak = await AsyncStorage.getItem(streakKey(userId));
+    const storedLastLearningDate = await AsyncStorage.getItem(lastLearningDateKey(userId));
 
     const streak = storedStreak ? parseInt(storedStreak, 10) : 0;
     const lastLearningDate = storedLastLearningDate === '' ? null : storedLastLearningDate;

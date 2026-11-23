@@ -1,11 +1,10 @@
-import { MaterialIcons } from "@expo/vector-icons";
-import React from "react";
-import { ScrollView, StatusBar, StyleSheet, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BORDER_RADIUS, useTheme } from "@/context/ThemeContext";
 import { globalStyles } from "@/styles";
+import { MaterialIcons } from "@expo/vector-icons";
+import { ScrollView, StatusBar, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-export default function AchievementScreen() {
+export default function LearnScreen() {
   const insets = useSafeAreaInsets();
   const { colors, darkMode } = useTheme();
 
@@ -18,14 +17,13 @@ export default function AchievementScreen() {
     >
       <StatusBar
         barStyle={darkMode ? "light-content" : "dark-content"}
-        backgroundColor={colors.background}
       />
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
         <Text style={[globalStyles.sectionTitle, { color: colors.primary }]}>
-          Achievement
+          Help
         </Text>
         <Text style={[globalStyles.subtitleText, { color: colors.text }]}>
-          Welcome to the Achievement page
+          Welcome to the Help Center page
         </Text>
 
         <View
@@ -39,12 +37,12 @@ export default function AchievementScreen() {
             },
           ]}
         >
-          <MaterialIcons name="emoji-events" size={32} color={colors.primary} />
+          <MaterialIcons name="help" size={32} color={colors.primary} />
           <Text style={[styles.cardTitle, { color: colors.primary }]}>
-            Collect badges & trophies
+            Find bug or need Something?
           </Text>
           <Text style={[styles.cardDescription, { color: colors.text }]}>
-            Daftar pencapaianmu akan muncul di sini. Keep learning!
+            Help center is under maintenanced. Stay tuned!
           </Text>
         </View>
       </ScrollView>
