@@ -40,5 +40,4 @@ if (AppState.currentState === 'active') {
   supabase.auth.startAutoRefresh();
 }
 
-// Catatan: Jika runtime error terkait URL muncul, jalankan `npx expo install react-native-url-polyfill`
-// dan import "react-native-url-polyfill/auto"; di baris pertama file ini.
+
